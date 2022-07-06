@@ -1,0 +1,8 @@
+name: Duet Date Picker
+version: 1.0.0
+type: module
+description: Offers a date picker field widget that uses the duetds/date-picker.
+core: 8.x
+core_version_requirement: ^8 || ^9
+package: 'Duet Date Picker'
+dependencies: {}

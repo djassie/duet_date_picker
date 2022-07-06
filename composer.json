@@ -1,0 +1,61 @@
+{
+  "name": "drupal/duet_date_picker",
+  "type": "drupal-custom-module",
+  "description": "Offers a date picker widget based on duetds/date-picker",
+  "keywords": [
+    "Drupal"
+  ],
+  "license": "GPL-2.0-or-later",
+  "version": "1.0.0",
+  "homepage": "https://coldfrontlabs.ca",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "bin-dir": "bin/",
+    "sort-packages": true,
+    "github-protocols": [
+      "https"
+    ],
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "drupal/core-composer-scaffold": true
+    }
+  },
+  "support": {
+    "issues": "https://git.achatscanadabuys.ca/eps/eps_tenders/issues",
+    "source": "https://git.achatscanadabuys.ca/eps/eps_tenders/eps_tenders.git"
+  },
+  "repositories": {
+    "0": {
+      "type": "composer",
+      "url": "https://packages.drupal.org/8"
+    },
+    "1": {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+
+  },
+  "require": {
+    "drupal/core-composer-scaffold": "^9",
+    "npm-asset/duetds--date-picker": "^1.4"
+  },
+  "require-dev": {
+    "dropfort/dropfort_module_build": "^2.0"
+  },
+  "scripts": {
+    "test:phpcompatibility": [
+      "phpcs --extensions=php,module,inc,install,test,profile,theme --standard=PHPCompatibility -p --runtime-set testVersion 7.2- web/modules;"
+    ]
+  },
+  "extra": {
+    "drupal-scaffold": {
+      "allowed-packages": [
+        "dropfort/dropfort_module_build"
+      ],
+      "file-mapping": {
+        "[project-root]/gulpfile.babel.js": false
+      }
+    }
+  }
+}

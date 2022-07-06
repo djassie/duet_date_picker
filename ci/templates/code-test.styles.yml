@@ -1,0 +1,36 @@
+# This file is managed by dropfort/dropfort_module_build.
+# Modifications to this file will be overwritten by default.
+
+
+########################################
+# Style coding standards.
+########################################
+
+
+########################################
+# Templates.
+########################################
+
+.styles_coding_standards_template:
+  stage: test
+  script:
+    - npm ci || npm install
+    - npm run lint:styles
+  interruptible: true
+  needs: []
+
+########################################
+# Stages.
+########################################
+
+styles_coding_standards:
+  extends: .styles_coding_standards_template
+  rules:
+    - if: '$SKIP_JOBS =~ /styles_coding_standards/'
+      when: never
+    - if: '$TARGET_PIPELINE != "all" && $TARGET_PIPELINE != "build_and_deploy"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - exists:
+        - ".stylelintrc.js"

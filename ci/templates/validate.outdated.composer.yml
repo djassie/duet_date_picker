@@ -1,0 +1,52 @@
+# This file is managed by dropfort/dropfort_module_build.
+# Modifications to this file will be overwritten by default.
+
+
+########################################
+# Test for outdated packages.
+########################################
+
+
+########################################
+# Templates.
+########################################
+
+.test_outdated_composer_template:
+  stage: validate
+  script:
+    - composer outdated --direct --outdated --minor-only --strict --no-interaction
+  interruptible: true
+  allow_failure: true
+
+########################################
+# Stages.
+########################################
+
+test_outdated_composer_dev:
+  extends: .test_outdated_composer_template
+  needs:
+    - module_dev_build
+  rules:
+    - if: '$SKIP_JOBS =~ /test_outdated_composer_dev/'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$TARGET_PIPELINE == "all"'
+    - if: '$TARGET_PIPELINE == "outdated"'
+
+test_outdated_composer_release:
+  extends: .test_outdated_composer_template
+  needs:
+    - module_release_build
+  rules:
+    - if: '$SKIP_JOBS =~ /test_outdated_composer_release/'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+      when: never
+    - if: '$CI_COMMIT_TAG !~ /^v?\d+\.\d+\.\d+(-.+)?$/'
+      when: never
+    - if: '$TARGET_PIPELINE == "all"'
+    - if: '$TARGET_PIPELINE == "outdated"'
+    - if: '$TARGET_PIPELINE == "validation"'

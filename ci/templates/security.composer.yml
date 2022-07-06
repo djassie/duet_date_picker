@@ -1,0 +1,67 @@
+# This file is managed by dropfort/dropfort_module_build.
+# Modifications to this file will be overwritten by default.
+
+
+########################################
+# Composer security test.
+########################################
+
+
+########################################
+# Template.
+########################################
+
+# Test for available security updates.
+.composer_security_template:
+  stage: security
+  image: registry.gitlab.com/savadenn-public/runners/local-php-security-checker:latest
+  variables:
+    GIT_STRATEGY: clone
+  interruptible: true
+  before_script:
+      - echo 'Skipping default before script.'
+  script:
+    - local-php-security-checker --format=json > cve_dependencies_php.json
+  artifacts:
+    expose_as: CVE Dependencies PHP
+    paths:
+      - cve_dependencies_php.json
+    when: on_failure
+
+########################################
+# Stages.
+########################################
+
+## Dev validate security composer
+validate_security_composer_dev:
+  extends:
+    - .composer_security_template
+  artifacts:
+    expire_in: 1 day
+  rules:
+    - if: '$SKIP_JOBS =~ /validate_security_composer_dev/'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$TARGET_PIPELINE == "all"'
+    - if: '$TARGET_PIPELINE == "security_checks"'
+    - if: '$TARGET_PIPELINE == "outdated"'
+    - if: '$TARGET_PIPELINE == "validation"'
+
+# Release validate security composer
+validate_security_composer_release:
+  extends:
+    - .composer_security_template
+  rules:
+    - if: '$SKIP_JOBS =~ /validate_security_composer_release/'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+      when: never
+    - if: '$CI_COMMIT_TAG !~ /^v?\d+\.\d+\.\d+(-.+)?$/'
+      when: never
+    - if: '$TARGET_PIPELINE == "all"'
+    - if: '$TARGET_PIPELINE == "security_checks"'
+    - if: '$TARGET_PIPELINE == "outdated"'
+    - if: '$TARGET_PIPELINE == "validation"'

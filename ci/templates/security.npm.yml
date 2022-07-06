@@ -1,0 +1,67 @@
+# This file is managed by dropfort/dropfort_module_build.
+# Modifications to this file will be overwritten by default.
+
+
+########################################
+# NPM security test.
+########################################
+
+
+########################################
+# Template.
+########################################
+
+# Test for available security updates.
+.npm_security_template:
+  stage: security
+  variables:
+    GIT_STRATEGY: clone
+  interruptible: true
+  allow_failure: true
+  script:
+    - test -f package-lock.json || npm i --package-lock-only
+    - mkdir -p testing/security/reports
+    - npm audit --production | tee testing/security/reports/npm_audit.txt
+  artifacts:
+    name: "$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME-npm_audit"
+    paths:
+      - testing/security/reports
+    when: on_failure
+
+########################################
+# Stages.
+########################################
+
+## Dev validate security npm
+validate_security_npm_dev:
+  extends:
+    - .npm_security_template
+  artifacts:
+    expire_in: 1 day
+  rules:
+    - if: '$SKIP_JOBS =~ /validate_security_npm_dev/'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$TARGET_PIPELINE == "all"'
+    - if: '$TARGET_PIPELINE == "security_checks"'
+    - if: '$TARGET_PIPELINE == "outdated"'
+    - if: '$TARGET_PIPELINE == "validation"'
+
+## Release validate security npm
+validate_security_npm_release:
+  extends:
+    - .npm_security_template
+  rules:
+    - if: '$SKIP_JOBS =~ /validate_security_npm_release/'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+      when: never
+    - if: '$CI_COMMIT_TAG !~ /^v?\d+\.\d+\.\d+(-.+)?$/'
+      when: never
+    - if: '$TARGET_PIPELINE == "all"'
+    - if: '$TARGET_PIPELINE == "security_checks"'
+    - if: '$TARGET_PIPELINE == "outdated"'
+    - if: '$TARGET_PIPELINE == "validation"'

@@ -1,0 +1,67 @@
+# This file is managed by dropfort/dropfort_module_build.
+# Modifications to this file will be overwritten by default.
+
+
+########################################
+# Build Module.
+########################################
+
+
+########################################
+# Template.
+########################################
+
+# Release build template
+.build_module_template:
+  stage: build
+  variables:
+    BUILD_COMPOSER_OPTIONS: --optimize-autoloader
+    BUILD_NPM_OPTIONS: --ignore-scripts
+    COMPOSER_EXIT_ON_PATCH_FAILURE: 1
+  script:
+    - composer clearcache
+    - composer install $BUILD_COMPOSER_OPTIONS
+    - npm ci $BUILD_NPM_OPTIONS || npm install $BUILD_NPM_OPTIONS
+    - npm run build
+  interruptible: true
+  artifacts:
+    name: "$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME"
+    paths:
+      - ./
+
+########################################
+# Stages.
+########################################
+
+# Dev build (for feature branches and development)
+module_dev_build:
+  extends:
+    - .build_module_template
+  variables:
+    BUILD_COMPOSER_OPTIONS: ' '
+    BUILD_NPM_OPTIONS: ' '
+  artifacts:
+    expire_in: 1 day
+  rules:
+    - if: '$SKIP_JOBS =~ /module_dev_build/'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '$TARGET_PIPELINE == "validation"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
+# Release build (for qa and production)
+module_release_build:
+  extends: .build_module_template
+  rules:
+    - if: '$SKIP_JOBS =~ /module_release_build/'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+      when: never
+    - if: '$TARGET_PIPELINE == "validation"'
+      when: never
+    - if: '$CI_COMMIT_TAG =~ /^v?\d+\.\d+\.\d+(-.+)?$/'
+
