@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * @file
+ * Contains duet_date_picker.module.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function duet_date_picker_theme($existing, $type, $theme, $path) {
+  return [
+    'duet_date_picker' => [
+      'base hook' => 'datetime',
+      'render element' => 'date',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function duet_date_picker_preprocess_duet_date_picker(&$variables) {
+  $variables['date'] = $variables[""];
+  $foo = 'bar';
+}

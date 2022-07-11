@@ -4,6 +4,7 @@ namespace Drupal\duet_date_picker\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\datetime\Plugin\Field\FieldWidget\DateTimeWidgetBase;
+use Drupal\datetime\Plugin\Field\FieldWidget\DateTimeDefaultWidget;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
@@ -15,7 +16,7 @@ use Drupal\Core\Form\FormStateInterface;
  *   field_types = {"datetime"},
  * )
  */
-class DuetDatePickerWidget extends DateTimeWidgetBase {
+class DuetDatePickerWidget extends DateTimeDefaultWidget {
 
   /**
    * {@inheritdoc}
@@ -28,11 +29,23 @@ class DuetDatePickerWidget extends DateTimeWidgetBase {
         'duet_date_picker/duet-date-picker',
       ],
     ];
-    // Add the date picker markup.
-    $element['duet_date_picker'] = [
-      '#markup' => '<label for="date">Choose a date</label></duet-date-picker identifier="date"></duet-date-picker>',
-    ];
+    // Theme the widget as a Duet date picker.
+    $element['value']['#theme'] = 'duet_date_picker';
     return $element;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function massageFormValues(array $values, array $form, FormStateInterface $form_state) {
+    $form_element_name = $this->fieldDefinition->getFieldStorageDefinition()->getName();
+    $form_input = $form_state->getUserInput();
+    if (!empty($form_input[$form_element_name])) {
+      $date_value = $form_input[$form_element_name];
+      $form_state->setValue($form_element_name, $date_value);
+    }
+    $values = parent::massageFormValues($values, $form, $form_state);
+    return $values;
   }
 
 }
