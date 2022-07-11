@@ -3,8 +3,8 @@
 namespace Drupal\duet_date_picker\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\datetime\Plugin\Field\FieldWidget\DateTimeWidgetBase;
 use Drupal\datetime\Plugin\Field\FieldWidget\DateTimeDefaultWidget;
+use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
@@ -42,7 +42,11 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget {
     $form_input = $form_state->getUserInput();
     if (!empty($form_input[$form_element_name])) {
       $date_value = $form_input[$form_element_name];
-      $form_state->setValue($form_element_name, $date_value);
+      //$form_state->setValue($form_element_name, $date_value);
+      if (!empty($values) and !empty($date_value)) {
+        $date_object = new DrupalDateTime($date_value[0]['value']);
+        $values[0]['value'] = $date_object;
+      }
     }
     $values = parent::massageFormValues($values, $form, $form_state);
     return $values;
