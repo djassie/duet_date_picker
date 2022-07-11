@@ -1,9 +1,9 @@
 duet-date-picker:
   js:
-    vendor/npm-asset/duetds--date-picker/dist/duet/duet.js: {}
-    vendor/npm-asset/duetds--date-picker/dist/duet/duet.esm.js: {}
+    /libraries/duetds--date-picker/dist/duet/duet.js: {}
+    /libraries/duetds--date-picker/dist/duet/duet.esm.js: {}
   css:
-    vendor/npm-asset/duetds--date-picker/dist/duet/themes/default.css: {}
+    /libraries/duetds--date-picker/dist/duet/themes/default.css: {}
   dependencies:
     - core/drupal
     - core/drupalSettings
