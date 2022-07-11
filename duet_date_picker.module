@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\Core\Datetime\DrupalDateTime;
+
 /**
  * @file
  * Contains duet_date_picker.module.
@@ -21,5 +23,13 @@ function duet_date_picker_theme($existing, $type, $theme, $path) {
  * Implements hook_preprocess_HOOK().
  */
 function duet_date_picker_preprocess_duet_date_picker(&$variables) {
-  // Do any preprocessing here for duet date picker template.
+  // Format the default value in a way the date picker will accept.
+  $formatted_default_date = '';
+  if (!empty($variables['date']) and !empty($variables['date']['#default_value'])) {
+    $default_value = $variables['date']['#default_value'];
+    if ($default_value instanceof DrupalDateTime) {
+      $formatted_default_date = $default_value->format('Y-m-d');
+    }
+  }
+  $variables['formatted_default_date'] = $formatted_default_date;
 }
