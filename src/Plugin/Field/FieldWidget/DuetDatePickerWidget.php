@@ -42,10 +42,11 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget {
     $form_input = $form_state->getUserInput();
     if (!empty($form_input[$form_element_name])) {
       $date_value = $form_input[$form_element_name];
-      //$form_state->setValue($form_element_name, $date_value);
-      if (!empty($values) and !empty($date_value)) {
-        $date_object = new DrupalDateTime($date_value[0]['value']);
-        $values[0]['value'] = $date_object;
+      if (!empty($date_value)) {
+        foreach ($values as $delta => $value) {
+          $date_object = new DrupalDateTime($date_value[$delta]['value']);
+          $values[$delta]['value'] = $date_object;
+        }
       }
     }
     $values = parent::massageFormValues($values, $form, $form_state);
