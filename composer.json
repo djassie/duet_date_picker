@@ -37,8 +37,7 @@
 
   },
   "require": {
-    "drupal/core-composer-scaffold": "^9",
-    "npm-asset/duetds--date-picker": "^1.4"
+    "drupal/core-composer-scaffold": "^9"
   },
   "require-dev": {
     "dropfort/dropfort_module_build": "^2.0"

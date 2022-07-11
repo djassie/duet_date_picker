@@ -20,4 +20,4 @@ HOW TO INSTALL DEPENDENCIES VIA COMPOSER:
 ],
 ```
 
-2. Execute `composer require npm-asset\duetds--date-picker`
+2. Execute `composer require npm-asset/duetds--date-picker`
