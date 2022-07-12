@@ -16,6 +16,10 @@ function duet_date_picker_theme($existing, $type, $theme, $path) {
       'base hook' => 'datetime_default',
       'render element' => 'date',
     ],
+    'duet_daterange_picker' => [
+      'base hook' => 'daterange_default',
+      'render element' => 'date',
+    ],
   ];
 }
 
