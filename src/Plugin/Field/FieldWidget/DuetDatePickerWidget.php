@@ -6,6 +6,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\datetime\Plugin\Field\FieldWidget\DateTimeDefaultWidget;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Security\TrustedCallbackInterface;
 
 /**
  * Defines the 'duet_date_picker' field widget.
@@ -16,7 +17,14 @@ use Drupal\Core\Form\FormStateInterface;
  *   field_types = {"datetime"},
  * )
  */
-class DuetDatePickerWidget extends DateTimeDefaultWidget {
+class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallbackInterface {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function trustedCallbacks() {
+    return ['dateDateCallback'];
+  }
 
   /**
    * {@inheritdoc}
@@ -31,7 +39,31 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget {
     ];
     // Theme the widget as a Duet date picker.
     $element['value']['#theme'] = 'duet_date_picker';
+    // Set callback to process date value on submit.
+    $element['value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
     return $element;
+  }
+
+  /**
+   * Process callback to set correct date value in form_state on submit.
+   */
+  public function dateDateCallback(&$element, FormStateInterface $form_state, $date) {
+    // Get the form element name and element delta.
+    $form_element_name = $this->fieldDefinition->getFieldStorageDefinition()->getName();
+    // @todo there must be a better way to get the element delta?
+    $form_element_delta = $element['#parents'][1];
+    $form_input = $form_state->getUserInput($form_element_name);
+    if (!empty($form_input[$form_element_name][$form_element_delta])) {
+      $date_value = $form_input[$form_element_name][$form_element_delta];
+      $date_object = new DrupalDateTime($date_value['value']);
+      $value = [
+        'date' => $date_value['value'],
+        'object' => $date_object,
+      ];
+      // Set the value for the element so that it is correctly
+      // handled by the Datetime element validator.
+      $form_state->setValueForElement($element, $value);
+    }
   }
 
   /**

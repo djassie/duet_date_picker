@@ -35,5 +35,6 @@ function duet_date_picker_preprocess_duet_date_picker(&$variables) {
       $formatted_default_date = $default_value->format('Y-m-d');
     }
   }
+  $variables['make_required'] = ($variables['date']['#required'] == TRUE) ? 'true' : 'false';
   $variables['formatted_default_date'] = $formatted_default_date;
 }
