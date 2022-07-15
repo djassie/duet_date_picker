@@ -43,6 +43,11 @@ class DuetDateRangePickerWidget extends DateRangeDefaultWidget implements Truste
     // Set callback to process date value on submit.
     $element['value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
     $element['end_value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
+    // Prevent any additional blank fields for multi-value fields.
+    $cardinality = $this->fieldDefinition->getFieldStorageDefinition()->getCardinality();
+    if (empty($items[$delta]->getValue()) and $cardinality != 1 and $delta > 0) {
+      $element = [];
+    }
     return $element;
   }
 
@@ -57,11 +62,18 @@ class DuetDateRangePickerWidget extends DateRangeDefaultWidget implements Truste
     $form_input = $form_state->getUserInput($form_element_name);
     if (!empty($form_input[$form_element_name][$form_element_delta])) {
       $date_value = $form_input[$form_element_name][$form_element_delta];
-      $date_object = new DrupalDateTime($date_value['value']);
-      $value = [
-        'date' => $date_value['value'],
-        'object' => $date_object,
-      ];
+      if (!empty($date_value['value'])) {
+        $date_object = new DrupalDateTime($date_value['value']);
+        $value = [
+          'date' => $date_value['value'],
+          'object' => $date_object,
+        ];
+      }
+      else {
+        $value = NULL;
+        unset($form_input[$form_element_name][$form_element_delta]);
+        $form_state->setUserInput($form_input);
+      }
       // Set the value for the element so that it is correctly
       // handled by the Datetime element validator.
       $form_state->setValueForElement($element, $value);
