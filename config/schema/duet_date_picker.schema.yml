@@ -1,0 +1,7 @@
+field.widget.settings.duet_date_picker:
+  type: mapping
+  label: 'Duet Date Picker widget settings'
+  mapping:
+    no_past_dates:
+      type: boolean
+      label: 'Disallow past dates'

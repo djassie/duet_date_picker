@@ -37,22 +37,22 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
         'duet_date_picker/duet-date-picker',
       ],
     ];
-    // This field is configured to accept a date and time value.
-    // Tweak the element to use Duet Date Picker for date, but leave
-    // the time element/input alone.
     if (!empty($element['value']['#date_time_element'])) {
-      // Duplicate the element to create the date-only element.
+      // This field is configured to accept a date and time value.
+      // Create a separate element to use Duet Date Picker for date, but leave
+      // the time element/input alone.
       $element['date_value'] = $element['value'];
       $element['date_value']['#theme'] = 'duet_date_picker';
       $element['date_value']['#date_time_element'] = 'none';
       $element['date_value']['#date_time_format'] = '';
       // Set callback to process date value on submit.
       $element['date_value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
-      // Remove the date element from the default datetime element.
+      // Remove the date element info from the time element.
       $element['value']['#date_date_element'] = 'none';
       $element['value']['#date_date_format'] = '';
     }
     else {
+      // This is just a plain old date (no time) field.
       $element['value']['#theme'] = 'duet_date_picker';
       // Set callback to process date value on submit.
       $element['value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
@@ -63,6 +63,15 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
     if (empty($items[$delta]->getValue()) and $cardinality != 1 and $delta > 0) {
       $element = [];
     }
+    // Pass widget settings to the rendering template.
+    $settings = $this->getSettings();
+    if (!empty($element['date_value'])) {
+      $element['date_value']['settings'] = $settings;
+    }
+    else {
+      $element['value']['settings'] = $settings;
+    }
+
     return $element;
   }
 
@@ -129,6 +138,30 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
     }
     $values = parent::massageFormValues($values, $form, $form_state);
     return $values;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function defaultSettings() {
+    return [
+      // Add setting to disallow dates in the past.
+      'no_past_dates' => FALSE,
+    ] + parent::defaultSettings();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function settingsForm(array $form, FormStateInterface $form_state) {
+    $element['no_past_dates'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Disallow past dates'),
+      '#default_value' => $this->getSetting('no_past_dates'),
+      '#required' => FALSE,
+    ];
+
+    return $element;
   }
 
 }
