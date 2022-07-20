@@ -37,10 +37,27 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
         'duet_date_picker/duet-date-picker',
       ],
     ];
+    // This field is configured to accept a date and time value.
+    // Tweak the element to use Duet Date Picker for date, but leave
+    // the time element/input alone.
+    if (!empty($element['value']['#date_time_element'])) {
+      // Duplicate the element to create the date-only element.
+      $element['date_value'] = $element['value'];
+      $element['date_value']['#theme'] = 'duet_date_picker';
+      $element['date_value']['#date_time_element'] = 'none';
+      $element['date_value']['#date_time_format'] = '';
+      // Set callback to process date value on submit.
+      $element['date_value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
+      // Remove the date element from the default datetime element.
+      $element['value']['#date_date_element'] = 'none';
+      $element['value']['#date_date_format'] = '';
+    }
+    else {
+      $element['value']['#theme'] = 'duet_date_picker';
+      // Set callback to process date value on submit.
+      $element['value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
+    }
     // Theme the widget as a Duet date picker.
-    $element['value']['#theme'] = 'duet_date_picker';
-    // Set callback to process date value on submit.
-    $element['value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
     // Prevent any additional blank fields for multi-value fields.
     $cardinality = $this->fieldDefinition->getFieldStorageDefinition()->getCardinality();
     if (empty($items[$delta]->getValue()) and $cardinality != 1 and $delta > 0) {
@@ -60,7 +77,16 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
     $form_input = $form_state->getUserInput($form_element_name);
     if (!empty($form_input[$form_element_name][$form_element_delta])) {
       $date_value = $form_input[$form_element_name][$form_element_delta];
-      if (!empty($date_value['value'])) {
+      if (!empty($date_value['date_value'] and !empty($date_value['value']))) {
+        // We are dealing with a datetime field (not just date).
+        $date_object = new DrupalDateTime($date_value['date_value'] . 'T' . $date_value['value']['time']);
+        $value = [
+          'date' => $date_value['date_value'],
+          'time' => $date_value['value']['time'],
+          'object' => $date_object,
+        ];
+      }
+      elseif (!empty($date_value['value'])) {
         $date_object = new DrupalDateTime($date_value['value']);
         $value = [
           'date' => $date_value['value'],
@@ -91,7 +117,12 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
       $date_value = $form_input[$form_element_name];
       if (!empty($date_value)) {
         foreach ($values as $delta => $value) {
-          $date_object = new DrupalDateTime($date_value[$delta]['value']);
+          if (!empty($value['date_value'] and !empty($value['value']))) {
+            $date_object = new DrupalDateTime($date_value[$delta]['date_value'] . 'T' . $date_value[$delta]['value']['time']);
+          }
+          else {
+            $date_object = new DrupalDateTime($date_value[$delta]['value']);
+          }
           $values[$delta]['value'] = $date_object;
         }
       }
