@@ -86,7 +86,7 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
           'object' => $date_object,
         ];
       }
-      elseif (!empty($date_value['value'])) {
+      elseif (!array_key_exists('date_value', $date_value) and !empty($date_value['value'])) {
         $date_object = new DrupalDateTime($date_value['value']);
         $value = [
           'date' => $date_value['value'],
@@ -117,7 +117,7 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
       $date_value = $form_input[$form_element_name];
       if (!empty($date_value)) {
         foreach ($values as $delta => $value) {
-          if (!empty($value['date_value'] and !empty($value['value']))) {
+          if (!empty($date_value[$delta]['date_value'] and !empty($date_value[$delta]['value']))) {
             $date_object = new DrupalDateTime($date_value[$delta]['date_value'] . 'T' . $date_value[$delta]['value']['time']);
           }
           else {
