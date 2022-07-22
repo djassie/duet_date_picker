@@ -71,6 +71,10 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
     else {
       $element['value']['settings'] = $settings;
     }
+    if ($settings['no_past_dates']) {
+      // Add the NoPastDates constraint validation.
+      $this->fieldDefinition->addConstraint('NoPastDates');
+    }
 
     return $element;
   }
