@@ -37,6 +37,18 @@ class DuetDateRangePickerWidget extends DateRangeDefaultWidget implements Truste
         'duet_date_picker/duet-date-picker',
       ],
     ];
+    // Get any input values from the form state.
+    $form_element_name = $this->fieldDefinition->getFieldStorageDefinition()->getName();
+    $input = $form_state->getUserInput()[$form_element_name][$delta];
+    // Set defaults from form input (if applicable).
+    if (!empty($input['value'])) {
+      $default_date_obj = new DrupalDateTime($input['value']);
+      $element['value']['#default_value'] = $default_date_obj;
+    }
+    if (!empty($input['end_value'])) {
+      $default_date_obj = new DrupalDateTime($input['end_value']);
+      $element['end_value']['#default_value'] = $default_date_obj;
+    }
     // Theme the widget as a Duet date picker.
     $element['value']['#theme'] = 'duet_date_picker';
     $element['end_value']['#theme'] = 'duet_date_picker';

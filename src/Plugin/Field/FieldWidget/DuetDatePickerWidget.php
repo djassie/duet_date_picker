@@ -37,6 +37,9 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
         'duet_date_picker/duet-date-picker',
       ],
     ];
+    // Get any input values from the form state.
+    $form_element_name = $this->fieldDefinition->getFieldStorageDefinition()->getName();
+    $input = $form_state->getUserInput()[$form_element_name][$delta];
     if (!empty($element['value']['#date_time_element'])) {
       // This field is configured to accept a date and time value.
       // Create a separate element to use Duet Date Picker for date, but leave
@@ -45,6 +48,17 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
       $element['date_value']['#theme'] = 'duet_date_picker';
       $element['date_value']['#date_time_element'] = 'none';
       $element['date_value']['#date_time_format'] = '';
+      // Set correct default values for date and time.
+      if (!empty($input['date_value'])) {
+        if (!empty($input['value']['time'])) {
+          $default_date_obj = new DrupalDateTime($input['date_value'] . $input['value']['time']);
+        }
+        else {
+          $default_date_obj = new DrupalDateTime($input['date_value']);
+        }
+        $element['date_value']['#default_value'] = $default_date_obj;
+        $element['value']['#default_value'] = $default_date_obj;
+      }
       // Set callback to process date value on submit.
       $element['date_value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
       // Remove the date element info from the time element.
@@ -56,6 +70,11 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
       $element['value']['#theme'] = 'duet_date_picker';
       // Set callback to process date value on submit.
       $element['value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
+      // Set correct default value for date.
+      if (!empty($input['value'])) {
+        $default_date_obj = new DrupalDateTime($input['value']);
+        $element['date_value']['#default_value'] = $default_date_obj;
+      }
     }
     // Theme the widget as a Duet date picker.
     // Prevent any additional blank fields for multi-value fields.
