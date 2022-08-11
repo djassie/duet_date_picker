@@ -21,3 +21,12 @@ HOW TO INSTALL DEPENDENCIES VIA COMPOSER:
 ```
 
 2. Execute `composer require npm-asset/duetds--date-picker`
+
+
+CORE PATCHES
+------------
+
+Since the Duet Date Picker widgers extend from core's date and datetime widgets, they are subject to the same limitations (and bugs) as those base widgets. In particular, for datetime ranges, the core/base widget does not by default check that the selected start date precedes the selected end date. There is an open issue with a working patch, however:
+
+https://www.drupal.org/project/drupal/issues/2847041
+
