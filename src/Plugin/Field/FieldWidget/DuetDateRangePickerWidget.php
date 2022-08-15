@@ -40,7 +40,7 @@ class DuetDateRangePickerWidget extends DateRangeDefaultWidget implements Truste
     // Get any input values from the form state.
     $form_element_name = $this->fieldDefinition->getFieldStorageDefinition()->getName();
     $input = $form_state->getUserInput()[$form_element_name][$delta];
-    if (!empty($element['value']['#date_time_element'])) {
+    if (!empty($element['value']['#date_time_element']) and 'none' != $element['value']['#date_time_element']) {
       // This field is configured to accept a date and time value.
       // Create a separate element to use Duet Date Picker for date, but leave
       // the time element/input alone.
