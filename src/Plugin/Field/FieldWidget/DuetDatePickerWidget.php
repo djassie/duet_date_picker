@@ -152,7 +152,7 @@ class DuetDatePickerWidget extends DateTimeDefaultWidget implements TrustedCallb
           if (!empty($date_value[$delta]['date_value'] and !empty($date_value[$delta]['value']))) {
             $date_object = new DrupalDateTime($date_value[$delta]['date_value'] . 'T' . $date_value[$delta]['value']['time']);
           }
-          else {
+          elseif (!empty($date_value[$delta]['value'])) {
             $date_object = new DrupalDateTime($date_value[$delta]['value']);
           }
           $values[$delta]['value'] = $date_object;
