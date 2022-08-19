@@ -1,7 +1,17 @@
 duet-date-picker:
   js:
     /libraries/duetds--date-picker/dist/duet/duet.js: {}
-    /libraries/duetds--date-picker/dist/duet/duet.esm.js: {}
+  css:
+    /libraries/duetds--date-picker/dist/duet/themes/default.css: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+
+duet-date-picker-esm:
+  js:
+    /libraries/duetds--date-picker/dist/duet/duet.esm.js:
+      attributes:
+        type: module
   css:
     /libraries/duetds--date-picker/dist/duet/themes/default.css: {}
   dependencies:
