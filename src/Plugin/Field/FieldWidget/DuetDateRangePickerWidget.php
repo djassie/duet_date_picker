@@ -113,10 +113,10 @@ class DuetDateRangePickerWidget extends DateRangeDefaultWidget implements Truste
       $element['value']['settings'] = $settings;
     }
     if (!empty($element['end_date_value'])) {
-      $element['end_date_value']['settings'] = $settings;
+      $element['end_date_value']['#settings'] = $settings;
     }
     else {
-      $element['end_value']['settings'] = $settings;
+      $element['end_value']['#settings'] = $settings;
     }
     if ($settings['no_past_dates']) {
       // Add the NoPastDates constraint validation.
