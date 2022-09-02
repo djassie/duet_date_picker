@@ -19,6 +19,6 @@ class NoPastDatesConstraint extends Constraint {
    * @var dateIsPast
    *   The message that will be shown if the date is in the past.
    */
-  public $dateIsPast = '%value is in the past. Please select a date later than now.';
+  public $dateIsPast = 'The selected date is in the past. Please select a date later than now.';
 
 }
