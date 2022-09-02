@@ -38,7 +38,7 @@ function duet_date_picker_preprocess_duet_date_picker(&$variables) {
   $variables['make_required'] = ($variables['date']['#required'] == TRUE) ? 'true' : 'false';
   $variables['formatted_default_date'] = $formatted_default_date;
   // Pass today's date as a minimum date if the settings disallow past dates.
-  if (!empty($variables['date']['#settings']) and $variables['date']['#settings']['no_past_dates']) {
+  if (!empty($variables['date']['#no_past_dates']) and $variables['date']['#no_past_dates']) {
     $variables['min_date'] = date('Y-m-d');
   }
 }

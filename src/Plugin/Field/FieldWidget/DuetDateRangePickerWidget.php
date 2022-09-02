@@ -37,6 +37,8 @@ class DuetDateRangePickerWidget extends DateRangeDefaultWidget implements Truste
         'duet_date_picker/duet-date-picker',
       ],
     ];
+    $start_date_picker_element_name = 'value';
+    $end_date_picker_element_name = 'end_value';
     // Get any input values from the form state.
     $form_element_name = $this->fieldDefinition->getFieldStorageDefinition()->getName();
     $input = $form_state->getUserInput()[$form_element_name][$delta];
@@ -44,61 +46,54 @@ class DuetDateRangePickerWidget extends DateRangeDefaultWidget implements Truste
       // This field is configured to accept a date and time value.
       // Create a separate element to use Duet Date Picker for date, but leave
       // the time element/input alone.
-      $element['date_value'] = $element['value'];
-      $element['date_value']['#theme'] = 'duet_date_picker';
-      $element['date_value']['#date_time_element'] = 'none';
-      $element['date_value']['#date_time_format'] = '';
-      $element['end_date_value'] = $element['end_value'];
-      $element['end_date_value']['#theme'] = 'duet_date_picker';
-      $element['end_date_value']['#date_time_element'] = 'none';
-      $element['end_date_value']['#date_time_format'] = '';
-      // Set correct default values for date and time.
-      if (!empty($input['date_value'])) {
-        if (!empty($input['value']['time'])) {
-          $default_date_obj = new DrupalDateTime($input['date_value'] . $input['value']['time']);
-        }
-        else {
-          $default_date_obj = new DrupalDateTime($input['date_value']);
-        }
-        $element['date_value']['#default_value'] = $default_date_obj;
-        $element['value']['#default_value'] = $default_date_obj;
-      }
-      if (!empty($input['end_date_value'])) {
-        if (!empty($input['end_value']['time'])) {
-          $default_date_obj = new DrupalDateTime($input['end_date_value'] . $input['end_value']['time']);
-        }
-        else {
-          $default_date_obj = new DrupalDateTime($input['end_date_value']);
-        }
-        $element['end_date_value']['#default_value'] = $default_date_obj;
-        $element['end_value']['#default_value'] = $default_date_obj;
-      }
-      // Set callback to process date value on submit.
-      $element['date_value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
-      $element['end_date_value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
+      $start_date_picker_element_name = 'date_value';
+      $end_date_picker_element_name = 'end_date_value';
+      $element[$start_date_picker_element_name]['#date_time_element'] = 'none';
+      $element[$start_date_picker_element_name]['#date_time_format'] = '';
+      $element[$end_date_picker_element_name] = $element['end_value'];
+      $element = [
+        $start_date_picker_element_name => $element['value'],
+        $end_date_picker_element_name => $element['end_value'],
+      ] + $element;
+      $element[$end_date_picker_element_name]['#date_time_element'] = 'none';
+      $element[$end_date_picker_element_name]['#date_time_format'] = '';
       // Remove the date element info from the time element.
       $element['value']['#date_date_element'] = 'none';
       $element['value']['#date_date_format'] = '';
       $element['end_value']['#date_date_element'] = 'none';
       $element['end_value']['#date_date_format'] = '';
     }
-    else {
-      // This is just a plain old date (no time) field.
-      $element['value']['#theme'] = 'duet_date_picker';
-      $element['end_value']['#theme'] = 'duet_date_picker';
-      // Set callback to process date value on submit.
-      $element['value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
-      $element['end_value']['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
-      // Set correct default value for date.
-      if (!empty($input['value'])) {
-        $default_date_obj = new DrupalDateTime($input['value']);
+
+    $element[$start_date_picker_element_name]['#theme'] = 'duet_date_picker';
+    $element[$end_date_picker_element_name]['#theme'] = 'duet_date_picker';
+    // Set callback to process date value on submit.
+    $element[$start_date_picker_element_name]['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
+    $element[$end_date_picker_element_name]['#date_date_callbacks'][] = [$this, 'dateDateCallback'];
+
+    // Set correct default values for date and time.
+    if (!empty($input[$start_date_picker_element_name])) {
+      if (!empty($input['value']['time'])) {
+        $default_date_obj = new DrupalDateTime($input[$start_date_picker_element_name] . $input['value']['time']);
+        $element[$start_date_picker_element_name]['#default_value'] = $default_date_obj;
         $element['value']['#default_value'] = $default_date_obj;
       }
-      if (!empty($input['end_value'])) {
-        $default_date_obj = new DrupalDateTime($input['end_value']);
-        $element['end_value']['#default_value'] = $default_date_obj;
+      else {
+        $default_date_obj = new DrupalDateTime($input[$start_date_picker_element_name]);
+        $element[$start_date_picker_element_name]['#default_value'] = $default_date_obj;
       }
     }
+    if (!empty($input[$end_date_picker_element_name])) {
+      if (!empty($input['end_value']['time'])) {
+        $default_date_obj = new DrupalDateTime($input[$end_date_picker_element_name] . $input['end_value']['time']);
+        $element[$end_date_picker_element_name]['#default_value'] = $default_date_obj;
+        $element['end_value']['#default_value'] = $default_date_obj;
+      }
+      else {
+        $default_date_obj = new DrupalDateTime($input[$end_date_picker_element_name]);
+        $element[$end_date_picker_element_name]['#default_value'] = $default_date_obj;
+      }
+    }
+
     // Prevent any additional blank fields for multi-value fields.
     $cardinality = $this->fieldDefinition->getFieldStorageDefinition()->getCardinality();
     if (empty($items[$delta]->getValue()) and $cardinality != 1 and $delta > 0) {
@@ -106,17 +101,16 @@ class DuetDateRangePickerWidget extends DateRangeDefaultWidget implements Truste
     }
     // Pass widget settings to the rendering template.
     $settings = $this->getSettings();
-    if (!empty($element['date_value'])) {
-      $element['date_value']['settings'] = $settings;
+    if (!empty($element[$start_date_picker_element_name])) {
+      $element[$start_date_picker_element_name]['#no_past_dates'] = $settings['no_past_dates'];
+      $element[$start_date_picker_element_name]['#label'] = $this->t($settings['start_label']);
+      // Unset the default form element title.
+      unset($element[$start_date_picker_element_name]['#title']);
     }
-    else {
-      $element['value']['settings'] = $settings;
-    }
-    if (!empty($element['end_date_value'])) {
-      $element['end_date_value']['#settings'] = $settings;
-    }
-    else {
-      $element['end_value']['#settings'] = $settings;
+    if (!empty($element[$end_date_picker_element_name])) {
+      $element[$end_date_picker_element_name]['#no_past_dates'] = $settings['no_past_dates'];
+      $element[$end_date_picker_element_name]['#label'] = $this->t($settings['end_label']);
+      unset($element[$end_date_picker_element_name]['#title']);
     }
     if ($settings['no_past_dates']) {
       // Add the NoPastDates constraint validation.
@@ -203,6 +197,10 @@ class DuetDateRangePickerWidget extends DateRangeDefaultWidget implements Truste
    */
   public static function defaultSettings() {
     return [
+      // Start date label.
+      'start_label' => 'Choose a start date',
+      // End date label.
+      'end_label' => 'Choose an end date',
       // Add setting to disallow dates in the past.
       'no_past_dates' => FALSE,
     ] + parent::defaultSettings();
@@ -212,6 +210,18 @@ class DuetDateRangePickerWidget extends DateRangeDefaultWidget implements Truste
    * {@inheritdoc}
    */
   public function settingsForm(array $form, FormStateInterface $form_state) {
+    $element['start_label'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Start date label'),
+      '#default_value' => $this->t($this->getSetting('start_label')),
+      '#required' => TRUE,
+    ];
+    $element['end_label'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('End date label'),
+      '#default_value' => $this->t($this->getSetting('end_label')),
+      '#required' => TRUE,
+    ];
     $element['no_past_dates'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Disallow past dates'),
