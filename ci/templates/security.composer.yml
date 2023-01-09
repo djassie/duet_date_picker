@@ -1,6 +1,23 @@
 # This file is managed by dropfort/dropfort_module_build.
 # Modifications to this file will be overwritten by default.
 
+# Copyright (c) 2022 Coldfront Labs Inc.
+
+# This file is part of DropfortCI Scripts.
+
+# DropfortCI Scripts is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# DropfortCI Scripts is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with DropfortCI Scripts.  If not, see <https://www.gnu.org/licenses/>.
+
 
 ########################################
 # Composer security test.
@@ -8,10 +25,10 @@
 
 
 ########################################
-# Template.
+# Templates.
 ########################################
 
-# Test for available security updates.
+## Composer security check template.
 .composer_security_template:
   stage: security
   image: registry.gitlab.com/savadenn-public/runners/local-php-security-checker:latest
@@ -28,11 +45,23 @@
       - cve_dependencies_php.json
     when: on_failure
 
+## Composer security check exclude rules.
+.composer_security_exclude_rules:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$TARGET_PIPELINE != "all" && $TARGET_PIPELINE != "security_checks" && $TARGET_PIPELINE != "outdated"'
+      when: never
+    - if: '$CI_COMMIT_MESSAGE =~ /\[validate only\]/'
+      when: never
+
 ########################################
-# Stages.
+# Jobs.
 ########################################
 
-## Dev validate security composer
+## Dev composer outdated check.
+#
+# Will run for both Feature and Development branches.
 validate_security_composer_dev:
   extends:
     - .composer_security_template
@@ -41,27 +70,19 @@ validate_security_composer_dev:
   rules:
     - if: '$SKIP_JOBS =~ /validate_security_composer_dev/'
       when: never
-    - if: '$CI_COMMIT_TAG'
-      when: never
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$TARGET_PIPELINE == "all"'
-    - if: '$TARGET_PIPELINE == "security_checks"'
-    - if: '$TARGET_PIPELINE == "outdated"'
-    - if: '$TARGET_PIPELINE == "validation"'
+    - !reference [.composer_security_exclude_rules, rules]
+    - !reference [.non_release_detect_exclude_rules, rules]
+    - !reference [.non_release_detect_include_rules, rules]
 
-# Release validate security composer
+## Release composer security check.
+#
+# Will run for both QA and Production tags.
 validate_security_composer_release:
   extends:
     - .composer_security_template
   rules:
     - if: '$SKIP_JOBS =~ /validate_security_composer_release/'
       when: never
-    - if: '$CI_COMMIT_BRANCH'
-      when: never
-    - if: '$CI_COMMIT_TAG !~ /^v?\d+\.\d+\.\d+(-.+)?$/'
-      when: never
-    - if: '$TARGET_PIPELINE == "all"'
-    - if: '$TARGET_PIPELINE == "security_checks"'
-    - if: '$TARGET_PIPELINE == "outdated"'
-    - if: '$TARGET_PIPELINE == "validation"'
+    - !reference [.composer_security_exclude_rules, rules]
+    - !reference [.release_detect_exclude_rules, rules]
+    - !reference [.release_detect_include_rules, rules]

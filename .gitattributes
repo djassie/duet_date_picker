@@ -90,3 +90,4 @@
 /package.json export-ignore
 /package.lock export-ignore
 /*.config.js export-ignore
+/ci

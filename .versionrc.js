@@ -72,6 +72,9 @@ const config = {
       hidden: false,
     },
   ],
+  // Don't prefix the version numbers so Drupal.org's release system
+  // will see our tags.
+  "tag-prefix": "",
 };
 
 config.packageFiles = ["package.json"];

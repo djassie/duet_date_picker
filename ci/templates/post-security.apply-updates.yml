@@ -1,4 +1,7 @@
-# Copyright (c) 2021 Coldfront Labs Inc.
+# This file is managed by dropfort/dropfort_module_build.
+# Modifications to this file will be overwritten by default.
+
+# Copyright (c) 2022 Coldfront Labs Inc.
 
 # This file is part of DropfortCI Scripts.
 
@@ -17,14 +20,16 @@
 
 
 ########################################
-# Apply Composer and NPM Updates.
+# Apply Dependency Updates.
 ########################################
 
 
 ########################################
-# Jobs.
+# Templates.
 ########################################
-.shared:
+
+## Dependency update template.
+.dependency_update_template:
   stage: post_security
   variables:
     GIT_STRATEGY: none
@@ -38,7 +43,7 @@
     - echo $CI_SERVER_HOST:$CI_PROJECT_PATH
     - git clone git@$CI_SERVER_HOST:$CI_PROJECT_PATH.git
     - cd $CI_PROJECT_NAME
-    ## install correct version of composer
+    # install correct version of composer
     - mkdir -p bin
     - export PATH="$(pwd)/vendor/bin:$(pwd)/bin:$PATH"
     - >
@@ -47,9 +52,14 @@
       && php composer-setup.php --install-dir=bin --filename=composer
       && php -r "unlink('composer-setup.php');"
       && echo "Composer installed"
+    - composer self-update $COMPOSER_VERSION
     - composer --version
-  script_create_MR:
-    ## Determine assignee id for merge request
+    - composer clearcache
+
+## Dependency update MR script.
+.dependency_update_mr_script:
+  script:
+    # Determine assignee id for merge request
     - >
       if [[ $DF_SUPPORT_ASSIGNEE ]]; then
         DF_ASSIGNEE_ID=$(curl --request GET --header "PRIVATE-TOKEN: $DF_CI_TOKEN" https://$CI_SERVER_HOST/api/v4/users?username=$DF_SUPPORT_ASSIGNEE | jq -r .[].id)
@@ -60,36 +70,50 @@
       DF_MR_RESPONSE=$(curl --request POST --header "PRIVATE-TOKEN: $DF_CI_TOKEN" --data-urlencode "title=$DF_MR_TITLE" --data-urlencode "source_branch=$DF_BRANCH_NAME" --data-urlencode "target_branch=$CI_DEFAULT_BRANCH" --data-urlencode "description=$DF_MR_DESCRIPTION" --data-urlencode "assignee_id=$DF_ASSIGNEE_ID" https://$CI_SERVER_HOST/api/v4/projects/$CI_PROJECT_ID/merge_requests)
     - DF_MR_URL=$(echo $DF_MR_RESPONSE | jq -r .web_url)
     - echo "Created MR $DF_MR_URL"
+
+## Dependency update exclude rules.
+.dependency_update_exclude_rules:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: never
+    - if: '$CI_COMMIT_MESSAGE =~ /\[validate only\]/'
+      when: never
+
+## Dependency update include rules.
+.dependency_update_include_rules:
+  rules:
     - if: '$TARGET_PIPELINE == "security_checks"'
     - if: '$TARGET_PIPELINE == "outdated"'
 
+
+########################################
+# Jobs.
+########################################
+
+## General (non-security related) updates.
 apply_general_updates:
-  stage: !reference [.shared, stage]
+  extends: .dependency_update_template
   when: on_success
-  variables: !reference [.shared, variables]
-  before_script:
-    - !reference [.shared, before_script]
   script:
     - DF_DATE=$(date +%F)
     - DF_BRANCH_NAME=$CI_PROJECT_NAME-general-updates-$DF_DATE
     - git checkout -b $DF_BRANCH_NAME
     - composer clearcache
     - composer install
-    - npm ci || npm install
-    ## Apply composer general updates if required
+    - npm install
+    # Apply composer general updates if required
     - export DF_COMPOSER_OUTDATED=$(composer outdated --locked --minor-only --direct --format=json 2>/dev/null)
-    - echo $DF_COMPOSER_OUTDATED | jq -r 'del(.[][] | select(.version == .latest)) | .[][] | "- " + .name + " (" + .version + " -> " + .latest + ")  "' > composer_outdated_results.txt
+    - echo $DF_COMPOSER_OUTDATED | jq -r '.[][] | select(.version != .latest) | select(.name != "composer/composer") | "- " + .name + " (" + .version + " -> " + .latest + ")  "' > composer_outdated_results.txt
     - export DF_COMPOSER_OUTDATED_COUNT=$(cat composer_outdated_results.txt | wc -l 2>/dev/null)
     - export DF_COMPOSER_UPDATE_RESULTS="No outdated composer dependencies found."
     - >
       if [ $DF_COMPOSER_OUTDATED_COUNT -gt 0 ]; then
-        composer update -q
+        export DF_COMPOSER_OUTDATED_DEPS=$(echo $DF_COMPOSER_OUTDATED | jq -r '.[][] | select(.name != "composer/composer") | select(.version != .latest) | .name' 2>/dev/null)
+
+        composer update $DF_COMPOSER_OUTDATED_DEPS -q --with-dependencies
 
         export DF_COMPOSER_STILL_OUTDATED=$(composer outdated --locked --minor-only --direct --format=json  2>/dev/null)
-        echo $DF_COMPOSER_STILL_OUTDATED | jq -r 'del(.[][] | select(.version == .latest)) | .[][] | "- " + .name + " (" + .version + " -> " + .latest + ")  "' > composer_still_outdated_results.txt
+        echo $DF_COMPOSER_STILL_OUTDATED | jq -r '.[][] | select(.version != .latest) | select(.name != "composer/composer") | "- " + .name + " (" + .version + " -> " + .latest + ")  "' > composer_still_outdated_results.txt
         export DF_COMPOSER_STILL_OUTDATED_COUNT=$(cat composer_still_outdated_results.txt | wc -l 2>/dev/null)
 
         if [ $DF_COMPOSER_STILL_OUTDATED_COUNT -lt $DF_COMPOSER_OUTDATED_COUNT ]; then
@@ -103,7 +127,7 @@ apply_general_updates:
       else
         echo $DF_COMPOSER_UPDATE_RESULTS
       fi
-    ## Apply npm general updates if required
+    # Apply npm general updates if required
     - export DF_NPM_OUTDATED=$(npm outdated --json 2>/dev/null)
     - export DF_NPM_OUTDATED_TRIMMED=$(echo $DF_NPM_OUTDATED | jq 'del(.[] | select(.current == .wanted))' 2>/dev/null)
     - export DF_NPM_OUTDATED_COUNT=$(echo $DF_NPM_OUTDATED_TRIMMED | jq '. | length' 2>/dev/null)
@@ -122,7 +146,7 @@ apply_general_updates:
         echo $DF_NPM_UPDATE_RESULTS
       fi
     - git push origin $DF_BRANCH_NAME
-    ## Create description for merge request
+    # Create description for merge request
     - >
       DF_MR_DESCRIPTION="## Composer updates
 
@@ -134,23 +158,25 @@ apply_general_updates:
       "
     - >
       export DF_MR_TITLE="build: apply general updates"
-    - !reference [.shared, script_create_MR]
-  rules: !reference [.shared, rules]
+    - !reference [.dependency_update_mr_script, script]
+  rules:
+    - if: '$SKIP_JOBS =~ /apply_general_updates/'
+      when: never
+    - !reference [.dependency_update_exclude_rules, rules]
+    - !reference [.dependency_update_include_rules, rules]
 
+## Security updates.
 apply_security_updates:
-  stage: !reference [.shared, stage]
+  extends: .dependency_update_template
   when: on_failure
-  variables: !reference [.shared, variables]
-  before_script:
-    - !reference [.shared, before_script]
   script:
     - DF_DATE=$(date +%F)
     - DF_BRANCH_NAME=$CI_PROJECT_NAME-security-updates-$DF_DATE
     - git checkout -b $DF_BRANCH_NAME
     - composer clearcache
     - composer install
-    - npm ci || npm install
-    ## Apply composer security updates
+    - npm install
+    # Apply composer security updates
     - export DF_COMPOSER_VULNERABILITIES=$(echo ../cve_dependencies_php.json 2>/dev/null)
     - export DF_COMPOSER_VULNERABILITY_COUNT=$(echo $DF_COMPOSER_VULNERABILITIES | jq '.|length' 2>/dev/null)
     - export DF_COMPOSER_UPDATE_RESULTS="No Composer security updates are required."
@@ -158,14 +184,14 @@ apply_security_updates:
       if [ $DF_COMPOSER_VULNERABILITY_COUNT -gt 0 ]; then
         export DF_COMPOSER_UPDATE_RESULTS=$(echo $DF_COMPOSER_VULNERABILITIES | jq 'to_entries[]|"- " + .key + "  "' 2>/dev/null)
 
-        composer update $(echo $DF_COMPOSER_VULNERABILITIES | jq -r '.|keys|join(" ")') --with-all-dependencies
+        composer update $(echo $DF_COMPOSER_VULNERABILITIES | jq -r '.|keys|join(" ")') -q --with-all-dependencies
 
         git add composer.lock
         git commit -m "build(composer): apply security updates" -m "Updated the following dependencies:" -m "$DF_COMPOSER_UPDATE_RESULTS"
       else
         echo $DF_COMPOSER_UPDATE_RESULTS
       fi
-    ## Apply npm security updates if required
+    # Apply npm security updates if required
     - export DF_NPM_VULNERABILITIES=$(npm audit --production --json 2>/dev/null)
     - export DF_NPM_VULNERABILITY_COUNT=$(echo $DF_NPM_VULNERABILITIES | jq '.vulnerabilities|map(select(.fixAvailable == true))|length' 2>/dev/null)
     - export DF_NPM_UPDATE_RESULTS="No NPM security updates are required."
@@ -189,7 +215,7 @@ apply_security_updates:
         echo $DF_NPM_UPDATE_RESULTS
       fi
     - git push origin $DF_BRANCH_NAME
-    ## Create description for merge request
+    # Create description for merge request
     - >
       DF_MR_DESCRIPTION="## Composer updates
 
@@ -201,5 +227,9 @@ apply_security_updates:
       "
     - >
       export DF_MR_TITLE="build: apply security updates"
-    - !reference [.shared, script_create_MR]
-  rules: !reference [.shared, rules]
+    - !reference [.dependency_update_mr_script, script]
+  rules:
+    - if: '$SKIP_JOBS =~ /apply_security_updates/'
+      when: never
+    - !reference [.dependency_update_exclude_rules, rules]
+    - !reference [.dependency_update_include_rules, rules]

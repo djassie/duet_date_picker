@@ -24,3 +24,5 @@ dist/*
 # Comment out if lock files are required.
 composer.lock
 package-lock.json
+
+drupal-ignore

@@ -6,7 +6,7 @@
     "Drupal"
   ],
   "license": "GPL-2.0-or-later",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha.1",
   "homepage": "https://coldfrontlabs.ca",
   "minimum-stability": "dev",
   "prefer-stable": true,
@@ -49,8 +49,10 @@
         "dropfort/dropfort_module_build"
       ],
       "file-mapping": {
-        "[project-root]/gulpfile.babel.js": false
-      }
+        "[project-root]/gulpfile.babel.js": false,
+        "[project-root]/.versionrc.js": false
+      },
+      "web-root": "drupal-ignore"
     }
   }
 }

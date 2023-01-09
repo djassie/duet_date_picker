@@ -1,17 +1,36 @@
 # This file is managed by dropfort/dropfort_module_build.
 # Modifications to this file will be overwritten by default.
 
+# Copyright (c) 2022 Coldfront Labs Inc.
+
+# This file is part of DropfortCI Scripts.
+
+# DropfortCI Scripts is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# DropfortCI Scripts is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with DropfortCI Scripts.  If not, see <https://www.gnu.org/licenses/>.
+
 include:
   - local: '/ci/templates/environments.yml'
   - local: '/ci/templates/build.module.yml'
   - local: '/ci/templates/code-test.drupal.yml'
   - local: '/ci/templates/code-test.scripts.yml'
   - local: '/ci/templates/code-test.styles.yml'
+  - local: '/ci/templates/release.package.yml'
   - local: '/ci/templates/post-security.apply-updates.yml'
   - local: '/ci/templates/security.composer.yml'
   - local: '/ci/templates/security.npm.yml'
   - local: '/ci/templates/validate.outdated.composer.yml'
   - local: '/ci/templates/validate.outdated.npm.yml'
+  - local: '/ci/templates/validate.phpcompatibility.yml'
 
 stages:
   - build
@@ -19,6 +38,7 @@ stages:
   - validate
   - security
   - post_security
+  - release
 
 variables:
   GET_SOURCES_ATTEMPTS: 3
