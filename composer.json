@@ -1,6 +1,6 @@
 {
   "name": "drupal/duet_date_picker",
-  "type": "drupal-custom-module",
+  "type": "drupal-module",
   "description": "Offers a date picker widget based on duetds/date-picker",
   "keywords": [
     "Drupal"
@@ -20,10 +20,6 @@
       "dealerdirect/phpcodesniffer-composer-installer": true,
       "drupal/core-composer-scaffold": true
     }
-  },
-  "support": {
-    "issues": "https://git.achatscanadabuys.ca/eps/eps_tenders/issues",
-    "source": "https://git.achatscanadabuys.ca/eps/eps_tenders/eps_tenders.git"
   },
   "repositories": {
     "0": {
