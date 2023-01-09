@@ -6,7 +6,7 @@
     "Drupal"
   ],
   "license": "GPL-2.0-or-later",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "homepage": "https://coldfrontlabs.ca",
   "minimum-stability": "dev",
   "prefer-stable": true,
