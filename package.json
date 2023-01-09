@@ -1,7 +1,7 @@
 {
   "name": "@drupal/duet_date_picker",
   "description": "Scaffolding and build tools for the Duet Date Picker Drupal module.",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "private": true,
   "scripts": {
     "init": "composer install && (npm ci || npm install)",
